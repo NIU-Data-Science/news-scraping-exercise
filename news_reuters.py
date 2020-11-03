@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul 13 15:23:39 2019
+Created on Wed Sep 16 09:31:36 2020
 
-@author: Dr. Mark M. Bailey | National Intelligence University
+@author: metalcorebear
 """
 
 #News Scrape
@@ -15,11 +15,28 @@ import requests
 from lxml import html
 import pickle
 import os
+import json
+from datetime import datetime
+from datetime import timezone
+from datetime import date as datemethod
 
 #Define functions
 """
 GENERAL FUNCTIONS
 """
+
+#get current UTC date and time as text
+def get_today():
+    utc_t = datetime.utcnow()
+    date_str = datemethod.strftime(utc_t, '%Y%m%dZ%H%M%S')
+    return date_str
+
+#save JSON file
+def save_json(file_path, json_object):
+    file_name = get_today() = '.json'
+    full_path = os.path.join(file_path, file_name)
+    with open(full_path, 'w') as json_file:
+        json.dump(json_object, json_file)
 
 #save object to pickle
 def save_pickle(output_path, pickle_object, file_name):
@@ -29,14 +46,17 @@ def save_pickle(output_path, pickle_object, file_name):
 
 #open pickle file
 def open_pickle(pickle_path):
-    with open(pickle_path, 'r') as pickle_file:
-        object_name = pickle.load(pickle_file)
+    with open(pickle_path, 'rb') as pickle_file:
+        object_name = pickle.load(pickle_file, encoding='UTF-8')
     return object_name
 
 #Get urls from news object
 def open_file(news_object_path):
     news_object_file = os.path.join(news_object_path, 'news_dump_object.pkl')
-    old_news = open_pickle(news_object_file)
+    if os.path.isfile(news_object_file):
+        old_news = open_pickle(news_object_file)
+    else:
+        old_news = []
     old_url_list = []
     for item in old_news:
         url = item['url']
@@ -190,14 +210,18 @@ def main():
     old_news, old_url_set = open_file(news_object_path)
     reuters_list = reuters(old_url_set)
     out_lists = [old_news, reuters_list]
-    output_reuters = concat_lists(out_lists)
+    output_all = concat_lists(out_lists)
+    print('Saving JSON...')
+    today_ = get_today()
+    news_object_name = os.path.join(news_object_path, today_ + 'json')
+    save_json(news_object_name, reuters_list)
     print('Saving news object...')
-    save_pickle(output_path, output_reuters, 'news_dump_object')
-    return output_reuters
+    save_pickle(output_path, output_all, 'news_dump_object')
+    return reuters_list
 
 
 """
 EXECUTE SCRIPT
 """
 if __name__ == '__main__':
-    output_reuters = main()
+    reuters_list = main()
