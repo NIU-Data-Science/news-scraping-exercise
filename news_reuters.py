@@ -33,7 +33,7 @@ def get_today():
 
 #save JSON file
 def save_json(file_path, json_object):
-    file_name = get_today() = '.json'
+    file_name = get_today() + '.json'
     full_path = os.path.join(file_path, file_name)
     with open(full_path, 'w') as json_file:
         json.dump(json_object, json_file)
